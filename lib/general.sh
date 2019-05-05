@@ -547,6 +547,8 @@ prepare_host()
 	curl patchutils python liblz4-tool libpython2.7-dev linux-base swig libpython-dev aptly acl \
 	locales ncurses-base pixz dialog systemd-container udev lib32stdc++6 libc6-i386 lib32ncurses5 lib32tinfo5 \
 	bison libbison-dev flex libfl-dev cryptsetup gpgv1 gnupg1 cpio"
+    
+    which aria2c || hostdeps="$hostdeps aria2"
 
 	local codename=$(lsb_release -sc)
 	display_alert "Build host OS release" "${codename:-(unknown)}" "info"
@@ -718,6 +720,14 @@ prepare_host()
 	fi
 }
 
+# downloader
+downloader()
+{
+    [ $# -ne 2 ] && { display_alert "downloader args count" "$#" "err";exit 1;}
+    alias aria2c='aria2c -c --file-allocation=falloc'
+    aria2c "$1" -o "$2"
+}
+
 # download_toolchain <url>
 #
 download_toolchain()
@@ -733,8 +743,8 @@ download_toolchain()
 	cd $SRC/cache/toolchains/
 
 	display_alert "Downloading" "$dirname"
-	curl -Lf --progress-bar $url -o $filename
-	curl -Lf --progress-bar ${url}.asc -o ${filename}.asc
+    downloader $url $filename
+    downloader ${url}.asc ${filename}.asc
 
 	local verified=false
 
@@ -783,7 +793,7 @@ download_etcher_cli()
         cd $SRC/cache/utility/
 
         display_alert "Downloading" "$dirname"
-        curl -Lf --progress-bar $url -o $filename
+        downloader $url $filename
 
         local verified=false
 	local b=$(sha256sum $filename)
