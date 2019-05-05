@@ -723,9 +723,12 @@ prepare_host()
 # downloader
 downloader()
 {
+    # $1=url, $2=output_file_name
     [ $# -ne 2 ] && { display_alert "downloader args count" "$#" "err";exit 1;}
-    alias aria2c='aria2c -c --file-allocation=falloc'
-    aria2c "$1" -o "$2"
+    args='--file-allocation=falloc --auto-file-renaming=false --continue=true --allow-overwrite=false'
+    display_alert "downloader args 1" "$1" "info"
+    display_alert "downloader args 2" "$2" "info"
+    aria2c $args "$1" -o "$2"
 }
 
 # download_toolchain <url>
