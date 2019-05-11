@@ -1,4 +1,4 @@
-verbosity=1
+verbosity=7
 logo=disabled
 console=both
 ethaddr=00:50:43:84:fb:2f
