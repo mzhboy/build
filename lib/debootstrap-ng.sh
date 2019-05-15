@@ -443,6 +443,15 @@ prepare_partitions()
 		unset kernel_support_space_cache_v2
 
 		mount ${fscreateopt} $rootdevice $MOUNT/
+	        if [[ $ROOTFS_TYPE == btrfs ]];then
+                        btrfs subvolume create $MOUNT/@$RELEASE
+                        btrfs subvolume create $MOUNT/@home
+                        btrfs subvolume create $MOUNT/@boot
+                        umount $MOUNT
+                        mount ${fscreateopt},subvol=@$RELEASE $rootdevice $MOUNT/
+                        mkdir "$MOUNT/home"
+                        mount ${fscreateopt},subvol=@home $rootdevice $MOUNT/home
+                fi
 		# create fstab (and crypttab) entry
 		if [[ $CRYPTROOT_ENABLE == yes ]]; then
 			# map the LUKS container partition via its UUID to be the 'cryptroot' device
@@ -451,7 +460,13 @@ prepare_partitions()
 		else
 			local rootfs="UUID=$(blkid -s UUID -o value $rootdevice)"
 		fi
-		echo "$rootfs / ${mkfs[$ROOTFS_TYPE]} defaults,noatime,nodiratime${mountopts[$ROOTFS_TYPE]} 0 1" >> $SDCARD/etc/fstab
+		# create fstab for btrfs with subvolume
+                if [[ $ROOTFS_TYPE == btrfs ]]; then
+                        echo "$rootfs /     ${mkfs[$ROOTFS_TYPE]} defaults,noatime,nodiratime${mountopts[$ROOTFS_TYPE]},subvol=@$RELEASE     0 1" >> $SDCARD/etc/fstab
+                        echo "$rootfs /home ${mkfs[$ROOTFS_TYPE]} defaults,noatime,nodiratime${mountopts[$ROOTFS_TYPE]},subvol=@home 0 1" >> $SDCARD/etc/fstab
+                else
+			echo "$rootfs / ${mkfs[$ROOTFS_TYPE]} defaults,noatime,nodiratime${mountopts[$ROOTFS_TYPE]} 0 1" >> $SDCARD/etc/fstab
+		fi
 	fi
 	if [[ -n $bootpart ]]; then
 		display_alert "Creating /boot" "$bootfs"
@@ -478,7 +493,9 @@ prepare_partitions()
 		sed -i -e "s/rootfstype=ext4/rootfstype=$ROOTFS_TYPE/" \
 			-e "s/rootfstype \"ext4\"/rootfstype \"$ROOTFS_TYPE\"/" $SDCARD/boot/$bootscript_dst
 	fi
-
+	
+	[[ $ROOTFS_TYPE == btrfs ]] && echo "extraargs=rootflags=subvol=@$RELEASE" >> $SDCARD/boot/armbianEnv.txt
+	
 	# if we have boot.ini = remove armbianEnv.txt and add UUID there if enabled
 	if [[ -f $SDCARD/boot/boot.ini ]]; then
 		sed -i -e "s/rootfstype \"ext4\"/rootfstype \"$ROOTFS_TYPE\"/" $SDCARD/boot/boot.ini
