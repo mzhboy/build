@@ -327,30 +327,31 @@ prepare_partitions()
 	mountopts[btrfs]=",commit=600,compress=${BTRFS_COMPRESSION:-lzo}"
 	# mountopts[nfs] is empty
 
+	local default_bootsize=256 # 64MiB was too small
 	# stage: determine partition configuration
 	if [[ -n $BOOTFS_TYPE ]]; then
 		# 2 partition setup with forced /boot type
 		local bootfs=$BOOTFS_TYPE
 		local bootpart=1
 		local rootpart=2
-		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=64 # MiB
+		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=$default_bootsize # MiB
 	elif [[ $ROOTFS_TYPE != ext4 && $ROOTFS_TYPE != nfs ]]; then
 		# 2 partition setup for non-ext4 local root
 		local bootfs=ext4
 		local bootpart=1
 		local rootpart=2
-		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=64 # MiB
+		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=$default_bootsize # MiB
 	elif [[ $ROOTFS_TYPE == nfs ]]; then
 		# single partition ext4 /boot, no root
 		local bootfs=ext4
 		local bootpart=1
-		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=64 # MiB, For cleanup processing only
+		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=$default_bootsize # MiB, For cleanup processing only
 	elif [[ $CRYPTROOT_ENABLE == yes ]]; then
 		# 2 partition setup for encrypted /root and non-encrypted /boot
 		local bootfs=ext4
 		local bootpart=1
 		local rootpart=2
-		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=64 # MiB
+		[[ -z $BOOTSIZE || $BOOTSIZE -le 8 ]] && BOOTSIZE=$default_bootsize # MiB
 	else
 		# single partition ext4 root
 		local rootpart=1
@@ -374,6 +375,7 @@ prepare_partitions()
 				# Used for server images, currently no swap functionality, so disk space
 				# requirements are rather low since rootfs gets filled with compress-force=${BTRFS_COMPRESSION:-lzo}
 				local sdsize=$(bc -l <<< "scale=0; (($imagesize * 0.8) / 4 + 1) * 4")
+				sdsize=$((sdsize + BOOTSIZE))
 				;;
 			*)
 				# Hardcoded overhead +25% is needed for desktop images,
