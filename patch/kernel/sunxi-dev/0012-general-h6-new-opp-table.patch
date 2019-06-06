@@ -70,7 +70,7 @@ index 141fd186b..4d4dcf8eb 100644
  		opp@1800000000 {
  			opp-hz = /bits/ 64 <1800000000>;
 -			opp-microvolt = <1160000 1160000 1160000>;
-+			opp-microvolt = <1000000 930000 1160000>;
++			opp-microvolt = <1010000 930000 1160000>;
  			clock-latency-ns = <244144>; /* 8 32k periods */
  		};
  	};
