@@ -1,0 +1,21 @@
+diff --git a/arch/arm/boot/dts/sun4i-a10.dtsi b/arch/arm/boot/dts/sun4i-a10.dtsi
+index e88daa4ef..9ca35fd82 100644
+--- a/arch/arm/boot/dts/sun4i-a10.dtsi
++++ b/arch/arm/boot/dts/sun4i-a10.dtsi
+@@ -117,10 +117,12 @@
+ 			clock-latency = <244144>; /* 8 32k periods */
+ 			operating-points = <
+ 				/* kHz	  uV */
+-				1008000 1400000
+-				912000	1350000
+-				864000	1300000
+-				624000	1250000
++				1192000 1375000
++				1104000 1350000
++				1008000 1300000
++				912000	1250000
++				864000	1200000
++				624000	1200000
+ 				>;
+ 			#cooling-cells = <2>;
+ 		};
